@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Нижний Новгород - Интерактивный путеводитель</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #1a3a5f, #2c5c8a);
+            color: white;
+            padding: 1.5rem 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo i {
+            margin-right: 10px;
+            font-size: 2rem;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin-left: 1.5rem;
+        }
+        
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            padding: 0.5rem 0.8rem;
+            border-radius: 4px;
+        }
+        
+        nav ul li a:hover, nav ul li a.active {
+            color: #3498db;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .hero {
+            background: #2c5c8a;
+            height: 500px;
+            display: flex;
+            align-items: center;
+            position: relative;
+            text-align: center;
+        }
+        
+        .hero-content {
+            color: white;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .btn {
+            display: inline-block;
+            background: #e74c3c;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background 0.3s;
+            text-decoration: none;
+        }
+        
+        .btn:hover {
+            background: #c0392b;
+        }
+        
+        .section {
+            padding: 4rem 0;
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .section-title h2 {
+            font-size: 2.2rem;
+            color: #2c3e50;
+            position: relative;
+            display: inline-block;
+            padding-bottom: 10px;
+        }
+        
+        .section-title h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background: #e74c3c;
+        }
+        
+        .filters {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 2rem;
+        }
+        
+        .filter-btn {
+            padding: 0.6rem 1.2rem;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        
+        .filter-btn.active, .filter-btn:hover {
+            background: #e74c3c;
+            color: white;
+            border-color: #e74c3c;
+        }
+        
+        .places-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .place-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+        
+        .place-card:hover {
+            transform: translateY(-10px);
+        }
+        
+        .place-img {
+            height: 200px;
+            width: 100%;
+            background: #3498db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .place-content {
+            padding: 1.5rem;
+        }
+        
+        .place-content h3 {
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+        }
+        
+        .place-content p {
+            color: #7f8c8d;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .place-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: #95a5a6;
+        }
+        
+        .map-container {
+            height: 500px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-top: 2rem;
+        }
+        
+        #nnovgorod-map {
+            height: 100%;
+            width: 100%;
+        }
+        
+        .routes {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .route-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+        
+        .route-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .route-img {
+            height: 180px;
+            width: 100%;
+            background: #e74c3c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .route-content {
+            padding: 1.5rem;
+        }
+        
+        .route-content h3 {
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+        }
+        
+        .route-stats {
+            display: flex;
+            justify-content: space-between;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+        
+        .route-difficulty {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .difficulty-easy {
+            background: #e8f6f3;
+            color: #27ae60;
+        }
+        
+        .difficulty-medium {
+            background: #fef9e7;
+            color: #f39c12;
+        }
+        
+        .difficulty-hard {
+            background: #fdedec;
+            color: #e74c3c;
+        }
+        
+        .info-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .info-card {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+        
+        .info-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .info-card i {
+            font-size: 2.5rem;
+            color: #e74c3c;
+            margin-bottom: 1rem;
+        }
+        
+        .info-card h3 {
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+        
+        .info-card p {
+            color: #7f8c8d;
+        }
+        
+        footer {
+            background: #2c3e50;
+            color: white;
+            padding: 3rem 0 1.5rem;
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .footer-column h3 {
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+            position: relative;
+            padding-bottom: 10px;
+        }
+        
+        .footer-column h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 40px;
+            height: 2px;
+            background: #e74c3c;
+        }
+        
+        .footer-column ul {
+            list-style: none;
+        }
+        
+        .footer-column ul li {
+            margin-bottom: 0.8rem;
+        }
+        
+        .footer-column ul li a {
+            color: #bdc3c7;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-column ul li a:hover {
+            color: #e74c3c;
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .social-links a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            color: white;
+            transition: background 0.3s;
+        }
+        
+        .social-links a:hover {
+            background: #e74c3c;
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 1.5rem;
+            border-top: 1px solid #34495e;
+            color: #bdc3c7;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            nav ul {
+                margin-top: 1rem;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            
+            nav ul li {
+                margin: 0.3rem;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+                position: absolute;
+                top: 1.5rem;
+                right: 1rem;
+            }
+            
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+            
+            .hero p {
+                font-size: 1rem;
+            }
+            
+            .places-grid, .routes, .info-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-landmark"></i> Нижний Новгород
+                </div>
+                <button class="mobile-menu-btn">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <nav>
+                    <ul>
+                        <li><a href="#home" class="active">Главная</a></li>
+                        <li><a href="#places">Достопримечательности</a></li>
+                        <li><a href="#routes">Маршруты</a></li>
+                        <li><a href="#map">Карта</a></li>
+                        <li><a href="#info">Полезная информация</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero" id="home">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Нижний Новгород - Столица Поволжья</h1>
+                <p>Откройте для себя город с богатой историей, уникальной архитектурой и живописными видами на слияние Волги и Оки</p>
+                <a href="#map" class="btn">Исследовать на карте</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="places">
+        <div class="container">
+            <div class="section-title">
+                <h2>Достопримечательности</h2>
+            </div>
+            
+            <div class="filters">
+                <button class="filter-btn active" data-filter="all">Все</button>
+                <button class="filter-btn" data-filter="history">История</button>
+                <button class="filter-btn" data-filter="architecture">Архитектура</button>
+                <button class="filter-btn" data-filter="nature">Природа</button>
+                <button class="filter-btn" data-filter="culture">Культура</button>
+            </div>
+            
+            <div class="places-grid">
+                <div class="place-card" data-category="history architecture">
+                    <div class="place-img">🏰 Нижегородский кремль</div>
+                    <div class="place-content">
+                        <h3>Нижегородский кремль</h3>
+                        <p>Исторический центр города, крепость XVI века с 13 башнями. С территории открывается панорамный вид на Стрелку.</p>
+                        <div class="place-meta">
+                            <span>📍 Кремль, 6А</span>
+                            <span>⭐ 4.9</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="place-card" data-category="architecture culture">
+                    <div class="place-img">📐 Чкаловская лестница</div>
+                    <div class="place-content">
+                        <h3>Чкаловская лестница</h3>
+                        <p>Одна из самых длинных лестниц в России, соединяет Верхне-Волжскую набережную с Нижне-Волжской.</p>
+                        <div class="place-meta">
+                            <span>📍 Верхне-Волжская наб.</span>
+                            <span>⭐ 4.7</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="place-card" data-category="history culture">
+                    <div class="place-img">🛍️ Большая Покровская</div>
+                    <div class="place-content">
+                        <h3>Большая Покровская</h3>
+                        <p>Главная пешеходная улица города с историческими зданиями, магазинами, кафе и уличными музыкантами.</p>
+                        <div class="place-meta">
+                            <span>📍 ул. Большая Покровская</span>
+                            <span>⭐ 4.8</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="place-card" data-category="nature">
+                    <div class="place-img">🌊 Стрелка</div>
+                    <div class="place-content">
+                        <h3>Стрелка</h3>
+                        <p>Место слияния Волги и Оки, одна из самых живописных точек города. Отличное место для прогулок и фотосессий.</p>
+                        <div class="place-meta">
+                            <span>📍 Стрелка</span>
+                            <span>⭐ 4.6</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="place-card" data-category="architecture culture">
+                    <div class="place-img">⛪ Собор Александра Невского</div>
+                    <div class="place-content">
+                        <h3>Собор Александра Невского</h3>
+                        <p>Один из самых высоких православных храмов России, расположенный на Стрелке.</p>
+                        <div class="place-meta">
+                            <span>📍 ул. Стрелка, 15А</span>
+                            <span>⭐ 4.7</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="place-card" data-category="history culture">
+                    <div class="place-img">🚗 Музей истории ГАЗ</div>
+                    <div class="place-content">
+                        <h3>Музей истории ГАЗ</h3>
+                        <p>Экспозиция, посвященная истории Горьковского автомобильного завода и развитию автомобилестроения.</p>
+                        <div class="place-meta">
+                            <span>📍 пр. Ленина, 95</span>
+                            <span>⭐ 4.5</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="routes">
+        <div class="container">
+            <div class="section-title">
+                <h2>Популярные маршруты</h2>
+            </div>
+            
+            <div class="routes">
+                <div class="route-card">
+                    <div class="route-img">🏛️ Исторический центр</div>
+                    <div class="route-content">
+                        <h3>Исторический центр</h3>
+                        <p>Пешеходный маршрут по главным историческим местам Нижнего Новгорода.</p>
+                        <div class="route-stats">
+                            <span><i class="fas fa-walking"></i> 3.5 км</span>
+                            <span><i class="far fa-clock"></i> 2-3 часа</span>
+                        </div>
+                        <span class="route-difficulty difficulty-easy">Легкий</span>
+                    </div>
+                </div>
+                
+                <div class="route-card">
+                    <div class="route-img">🌅 Волжские набережные</div>
+                    <div class="route-content">
+                        <h3>Волжские набережные</h3>
+                        <p>Прогулка по живописным набережным Волги с посещением смотровых площадок.</p>
+                        <div class="route-stats">
+                            <span><i class="fas fa-walking"></i> 5 км</span>
+                            <span><i class="far fa-clock"></i> 3-4 часа</span>
+                        </div>
+                        <span class="route-difficulty difficulty-medium">Средний</span>
+                    </div>
+                </div>
+                
+                <div class="route-card">
+                    <div class="route-img">📚 По следам Горького</div>
+                    <div class="route-content">
+                        <h3>По следам Максима Горького</h3>
+                        <p>Литературный маршрут по местам, связанным с жизнью и творчеством писателя.</p>
+                        <div class="route-stats">
+                            <span><i class="fas fa-walking"></i> 4 км</span>
+                            <span><i class="far fa-clock"></i> 2.5 часа</span>
+                        </div>
+                        <span class="route-difficulty difficulty-easy">Легкий</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="map">
+        <div class="container">
+            <div class="section-title">
+                <h2>Интерактивная карта</h2>
+            </div>
+            <div class="map-container">
+                <div id="nnovgorod-map"></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="info">
+        <div class="container">
+            <div class="section-title">
+                <h2>Полезная информация</h2>
+            </div>
+            
+            <div class="info-cards">
+                <div class="info-card">
+                    <i class="fas fa-subway"></i>
+                    <h3>Как добраться</h3>
+                    <p>Поезда из Москвы (4-5 часов), аэропорт, междугородние автобусы. Отличное транспортное сообщение.</p>
+                </div>
+                
+                <div class="info-card">
+                    <i class="fas fa-hotel"></i>
+                    <h3>Где остановиться</h3>
+                    <p>Отели в центре города от 2000 руб/ночь. Хостелы и апартаменты доступны в пешей доступности от достопримечательностей.</p>
+                </div>
+                
+                <div class="info-card">
+                    <i class="fas fa-utensils"></i>
+                    <h3>Где поесть</h3>
+                    <p>Рестораны русской кухни, кафе на Большой Покровской, столовые с бизнес-ланчами от 250 руб.</p>
+                </div>
+                
+                <div class="info-card">
+                    <i class="fas fa-calendar-alt"></i>
+                    <h3>События</h3>
+                    <p>Фестивали, выставки, концерты. Обязательно посетите Нижегородскую ярмарку!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>О путеводителе</h3>
+                    <p>Интерактивный путеводитель по Нижнему Новгороду поможет вам спланировать идеальное путешествие по столице Поволжья.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-vk"></i></a>
+                        <a href="#"><i class="fab fa-telegram"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Быстрые ссылки</h3>
+                    <ul>
+                        <li><a href="#home">Главная</a></li>
+                        <li><a href="#places">Достопримечательности</a></li>
+                        <li><a href="#routes">Маршруты</a></li>
+                        <li><a href="#map">Карта</a></li>
+                        <li><a href="#info">Полезная информация</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Контакты</h3>
+                    <ul>
+                        <li><i class="fas fa-map-marker-alt"></i> Нижний Новгород, Россия</li>
+                        <li><i class="fas fa-phone"></i> +7 (831) 123-45-67</li>
+                        <li><i class="fas fa-envelope"></i> info@nn-guide.ru</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                <p>&copy; 2023 Интерактивный путеводитель по Нижнему Новгороду. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        // Инициализация карты
+        const map = L.map('nnovgorod-map').setView([56.326887, 44.005986], 13);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+        
+        // Добавление маркеров достопримечательностей
+        const places = [
+            {
+                name: "Нижегородский кремль",
+                coords: [56.328235, 44.002053],
+                category: "history architecture"
+            },
+            {
+                name: "Чкаловская лестница",
+                coords: [56.331389, 44.008056],
+                category: "architecture culture"
+            },
+            {
+                name: "Большая Покровская",
+                coords: [56.318611, 44.0025],
+                category: "history culture"
+            },
+            {
+                name: "Стрелка",
+                coords: [56.333611, 43.976389],
+                category: "nature"
+            },
+            {
+                name: "Собор Александра Невского",
+                coords: [56.331944, 43.971389],
+                category: "architecture culture"
+            },
+            {
+                name: "Музей истории ГАЗ",
+                coords: [56.233333, 43.866667],
+                category: "history culture"
+            }
+        ];
+        
+        places.forEach(place => {
+            L.marker(place.coords)
+                .addTo(map)
+                .bindPopup(`<b>${place.name}</b><br><small>Нажмите для подробностей</small>`);
+        });
+        
+        // Фильтрация достопримечательностей
+        document.querySelectorAll('.filter-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                this.classList.add('active');
+                
+                const filter = this.getAttribute('data-filter');
+                const placeCards = document.querySelectorAll('.place-card');
+                
+                placeCards.forEach(card => {
+                    if (filter === 'all' || card.getAttribute('data-category').includes(filter)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+        
+        // Мобильное меню
+        const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+        const nav = document.querySelector('nav');
+        
+        mobileMenuBtn.addEventListener('click', function() {
+            nav.style.display = nav.style.display === 'flex' ? 'none' : 'flex';
+        });
+        
+        // Плавная прокрутка
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+                
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
